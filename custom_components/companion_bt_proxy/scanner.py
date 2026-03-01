@@ -28,12 +28,7 @@ class CompanionBLEScanner(bluetooth.BaseHaRemoteScanner):
         service_data = {key: base64.b64decode(value) for (key, value) in data.get("service_data", {}).items()}
         m_data = {int(key, 10): base64.b64decode(value) for (key, value) in data.get("manufacturer_data", {}).items()}
         _LOGGER.debug(f"async_process_json: {data}, {service_data}, {m_data}")
-        ts_ms = data.get("timestamp")
-        if ts_ms is not None:
-            # Convert phone Unix timestamp (ms) to local monotonic time
-            monotonic_time = time.monotonic() - (time.time() - ts_ms / 1000)
-        else:
-            monotonic_time = time.monotonic()
+        monotonic_time = time.monotonic()
         self._async_on_advertisement(
             address=data["address"],
             rssi=data.get("rssi", 0),
