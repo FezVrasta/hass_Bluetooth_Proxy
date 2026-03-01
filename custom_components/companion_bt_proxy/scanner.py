@@ -1,15 +1,26 @@
 from homeassistant.components import bluetooth
 
+import hashlib
 import logging
 import base64
 
 _LOGGER = logging.getLogger(__name__)
 
+
+def _entry_id_to_mac(entry_id: str) -> str:
+    """Derive a stable locally-administered MAC address from a config entry ID."""
+    digest = hashlib.sha256(entry_id.encode()).digest()
+    octets = bytearray(digest[:6])
+    octets[0] = (octets[0] | 0x02) & 0xFE  # locally-administered, unicast
+    return ":".join(f"{b:02x}" for b in octets)
+
+
 class CompanionBLEScanner(bluetooth.BaseHaRemoteScanner):
 
     def __init__(self, hass, entry):
-        self._connector = bluetooth.HaBluetoothConnector(client=None, source=entry.entry_id, can_connect=lambda: False)
-        super().__init__(entry.entry_id, entry.title, self._connector, False)
+        self._source_mac = _entry_id_to_mac(entry.entry_id)
+        self._connector = bluetooth.HaBluetoothConnector(client=None, source=self._source_mac, can_connect=lambda: False)
+        super().__init__(self._source_mac, entry.title, self._connector, False)
         self._sensors = []
 
     async def async_process_json(self, data: dict):

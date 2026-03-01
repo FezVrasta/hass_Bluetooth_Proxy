@@ -27,6 +27,7 @@ class _LastUpdate(sensor.SensorEntity):
         self._value = None
         self._entry_id = entry.entry_id
         self._device_name = entry.title
+        self._source_mac = scanner._source_mac
 
     async def async_on_scanner_update(self, scanner):
         self._value = dt.now()
@@ -40,7 +41,10 @@ class _LastUpdate(sensor.SensorEntity):
     def device_info(self):
         return {
             "identifiers": {
-                ("entry_id", self._entry_id), 
+                (DOMAIN, self._entry_id),
+            },
+            "connections": {
+                ("bluetooth", self._source_mac.upper()),
             },
             "name": self._device_name,
         }
