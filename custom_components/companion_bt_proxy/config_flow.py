@@ -1,10 +1,11 @@
 from homeassistant import config_entries
+from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.selector import selector
 from homeassistant.helpers import device_registry, network
 from homeassistant.components import webhook
 
-from .constants import DOMAIN
+from .constants import CONF_ADDRESS_FILTER, DOMAIN
 
 import voluptuous as vol
 import logging
@@ -42,3 +43,24 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(user_input["name"])
             self._abort_if_unique_id_configured()
             return self.async_create_entry(title=user_input["name"], options={}, data={"webhook": user_input["webhook"],})
+
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        return OptionsFlowHandler()
+
+
+class OptionsFlowHandler(config_entries.OptionsFlow):
+    """Lets the address allow-list be edited after setup."""
+
+    async def async_step_init(self, user_input=None):
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+        schema = vol.Schema({
+            vol.Optional(
+                CONF_ADDRESS_FILTER,
+                default=self.config_entry.options.get(CONF_ADDRESS_FILTER, ""),
+            ): selector({"text": {"multiline": True}}),
+        })
+        return self.async_show_form(step_id="init", data_schema=schema)
