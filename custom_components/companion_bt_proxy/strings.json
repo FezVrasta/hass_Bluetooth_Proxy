@@ -1,4 +1,14 @@
 {
+  "options": {
+    "step": {
+      "init": {
+        "description": "Leave empty to forward every advertisement the phone hears.",
+        "data": {
+          "address_filter": "Only forward these addresses"
+        }
+      }
+    }
+  },
   "config": {
     "step": {
       "user": {
